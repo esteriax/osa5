@@ -1,4 +1,4 @@
-const Blog = ({ blog, toggleImportance }) => {
+const Blog = ({ blog }) => {
 
   return (
     <div className="Blog">

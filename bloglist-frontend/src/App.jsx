@@ -7,7 +7,7 @@ import BlogService from './services/blogs'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
-  const [newBlog, setNewBlog] = useState('')
+  const [newBlog, setNewBlog] = useState({ title: '', author: '', url: '' })
   const [showAll, setShowAll] = useState(true)
   const [errorMessage, setErrorMessage] = useState(null)
   const [username, setUsername] = useState('')
@@ -32,12 +32,14 @@ const App = () => {
   const addBlog = event => {
     event.preventDefault()
     const BlogObject = {
-      title: newBlog,
+      title: newBlog.title,
+      author: newBlog.author,
+      url: newBlog.url
     }
 
     BlogService.create(BlogObject).then(returnedBlog => {
       setBlogs(blogs.concat(returnedBlog))
-      setNewBlog('')
+      setNewBlog({ title: '', author: '', url: '' })
     })
   }
 
@@ -84,7 +86,7 @@ const App = () => {
     setNewBlog(event.target.value)
   }
 
-  const BlogsToShow = showAll ? blogs : blogs.filter(Blog => Blog.important)
+  const BlogsToShow = showAll ? blogs : blogs.filter(Blog => Blog.title)
 
   const loginForm = () => (
     <form onSubmit={handleLogin}>
@@ -114,7 +116,10 @@ const App = () => {
 
   const BlogForm = () => (
     <form onSubmit={addBlog}>
-      <input value={newBlog} onChange={handleBlogChange} />
+      <h2>create new</h2>
+      <div>title: <input value={newBlog.title} onChange={({ target }) => setNewBlog({ ...newBlog, title: target.value })} /></div>
+      <div>author: <input value={newBlog.author} onChange={({ target }) => setNewBlog({ ...newBlog, author: target.value })} /></div>
+      <div>url: <input value={newBlog.url} onChange={({ target }) => setNewBlog({ ...newBlog, url: target.value })} /></div>
       <button type="submit">create</button>
     </form>
   )
@@ -135,6 +140,7 @@ const App = () => {
           <p>{user.name} logged in 
           <button onClick={() => logOut()}>logout</button>
           </p>
+          {BlogForm()}
         {BlogsToShow
           .filter(blog => blog.user?.username === user.username)
           .map(blog => (
@@ -143,7 +149,6 @@ const App = () => {
               blog={blog}
             />
       ))}
-        {/*{BlogForm()}*/}
         </div>
       )}
      
