@@ -1,7 +1,10 @@
-const Blog = ({ blog }) => (
-  <div>
-    {blog.title} {blog.author}
-  </div>  
-)
+const Blog = ({ blog, toggleImportance }) => {
+
+  return (
+    <div className="Blog">
+      {blog.title}
+    </div>
+  )
+}
 
 export default Blog
