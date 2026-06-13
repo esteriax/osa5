@@ -119,6 +119,11 @@ const App = () => {
     </form>
   )
 
+  const logOut = () => {
+    window.localStorage.removeItem('loggedBlogappUser')
+    setUser(null)
+  }
+
   return (
     <div>
       <h1>Blogs</h1>
@@ -127,8 +132,9 @@ const App = () => {
       {!user && loginForm()}
       {user && (
         <div>
-          <p>{user.name} logged in</p>
-          
+          <p>{user.name} logged in 
+          <button onClick={() => logOut()}>logout</button>
+          </p>
         {BlogsToShow
           .filter(blog => blog.user?.username === user.username)
           .map(blog => (
