@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import Footer from './components/Footer'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
+import LoginForm from './components/LoginForm'
+import BlogForm from './components/BlogForm'
 import Togglable from './components/Togglable'
 import loginService from './services/login'
 import BlogService from './services/blogs'
@@ -15,6 +17,8 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
+  const [loginVisible, setLoginVisible] = useState(false)
+  const [blogFormVisible, setBlogFormVisible] = useState(false)
 
 
   useEffect(() => {
@@ -99,60 +103,49 @@ const App = () => {
     ? blogs
     : blogs.filter(blog => blog.title)
 
-  const loginForm = () => (
-    <form onSubmit={handleLogin}>
-      <div>
-        <label>
-          username
-          <input
-            type="text"
-            value={username}
-            onChange={({ target }) => setUsername(target.value)}
-          />
-        </label>
-      </div>
-      <div>
-        <label>
-          password
-          <input
-            type="password"
-            value={password}
-            onChange={({ target }) => setPassword(target.value)}
-          />
-        </label>
-      </div>
-      <button type="submit">login</button>
-    </form>
-  )
+  const loginForm = () => {
+    const hideWhenVisible = { display: loginVisible ? 'none' : '' }
+    const showWhenVisible = { display: loginVisible ? '' : 'none' }
 
-  const BlogForm = () => (
-    <form onSubmit={addBlog}>
-      <h2>create new</h2>
+    return (
       <div>
-        title:
-        <input
-          value={newBlog.title}
-          onChange={({ target }) => setNewBlog({ ...newBlog, title: target.value })}
-        />
+        <div style={hideWhenVisible}>
+          <button onClick={() => setLoginVisible(true)}>log in</button>
+        </div>
+        <div style={showWhenVisible}>
+          <LoginForm
+            username={username}
+            password={password}
+            handleUsernameChange={({ target }) => setUsername(target.value)}
+            handlePasswordChange={({ target }) => setPassword(target.value)}
+            handleSubmit={handleLogin}
+          />
+          <button onClick={() => setLoginVisible(false)}>cancel</button>
+        </div>
       </div>
-      <div>
-        author:
-        <input
-          value={newBlog.author}
-          onChange={({ target }) => setNewBlog({ ...newBlog, author: target.value })}
-        />
-      </div>
-      <div>
-        url:
-        <input
-          value={newBlog.url}
-          onChange={({ target }) => setNewBlog({ ...newBlog, url: target.value })}
-        />
-      </div>
-      <button type="submit">create</button>
-    </form>
-  )
+    )
+  }
 
+  const blogForm = () => {
+    const hideWhenVisible = { display: blogFormVisible ? 'none' : '' }
+    const showWhenVisible = { display: blogFormVisible ? '' : 'none' }
+
+    return (
+      <div>
+        <div style={hideWhenVisible}>
+          <button onClick={() => setBlogFormVisible(true)}>create new blog</button>
+        </div>
+        <div style={showWhenVisible}>
+          <BlogForm
+            addBlog={addBlog}
+            newBlog={newBlog}
+            setNewBlog={setNewBlog}
+          />
+          <button onClick={() => setBlogFormVisible(false)}>cancel</button>
+        </div>
+      </div>
+    )
+  }
   return (
     <div>
       <h1>Blogs</h1>
@@ -165,7 +158,7 @@ const App = () => {
             {user.name} logged in
             <button onClick={logOut}>logout</button>
           </p>
-          {BlogForm()}
+          {blogForm()}
           {BlogsToShow
             .filter(blog => blog.user?.username === user.username)
             .map(blog => (
