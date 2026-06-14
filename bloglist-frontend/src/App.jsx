@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import Footer from './components/Footer'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
+import Togglable from './components/Togglable'
 import loginService from './services/login'
 import BlogService from './services/blogs'
 
@@ -15,14 +16,20 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
 
-  console.log('haetaan palvelimelta')
+
   useEffect(() => {
-    BlogService.getAll()
-    .then(initialBlogs => {
-      console.log('promise täytetty')
-      setBlogs(initialBlogs)
-      console.log('blogit haettu palvelimelta')
-    })
+    console.log('haetaan blogit palvelimelta')
+    const fetchBlogs = async () => {
+      try {
+        const initialBlogs = await BlogService.getAll()
+        setBlogs(initialBlogs)
+        console.log('blogit haettu palvelimelta')
+      } catch {
+        setErrorMessage('blogien haku epäonnistui')
+        setTimeout(() => setErrorMessage(null), 5000)
+      }
+    }
+    fetchBlogs()
   }, [])
 
   useEffect(() => {
@@ -34,81 +41,63 @@ const App = () => {
     }
   }, [])
 
-  const addBlog = event => {
+  const addBlog = async event => {
     event.preventDefault()
-    const BlogObject = {
+     console.log('lisätään blogi palvelimelle')
+    const blogObject = {
       title: newBlog.title,
       author: newBlog.author,
       url: newBlog.url
     }
 
-    console.log('luodaan uusi blogi')
-    BlogService
-      .create(BlogObject)
-      .then(returnedBlog => {
+    try {
+      const returnedBlog = await BlogService.create(blogObject)
+      console.log('returnedBlog:', returnedBlog)
       setBlogs(blogs.concat(returnedBlog))
       setNewBlog({ title: '', author: '', url: '' })
-      console.log('asetetaan onnistumisviesti')
+      console.log('blogi lisätty')
+      alert(`a new blog ${returnedBlog.title} added`)
       setSuccessMessage(`a new blog ${returnedBlog.title} by ${returnedBlog.author} added`)
-      setTimeout(() => {
-          setSuccessMessage(null)
-        }, 10000)
-      console.log('blogi luotu palvelimelle')
-    })
-    .catch(() => {
+      setTimeout(() => setSuccessMessage(null), 5000)
+    } catch {
+      console.log('blogin lisääminen epäonnistui')
       setErrorMessage('blog could not be added')
-      setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
+      setTimeout(() => setErrorMessage(null), 5000)
     }
-    )
   }
-
-  {/*const toggleImportanceOf = id => {
-    const Blog = blogs.find(n => n.id === id)
-    const changedBlog = { ...Blog, important: !Blog.important }
-
-    BlogService
-      .update(id, changedBlog)
-      .then(returnedBlog => {
-        setBlogs(blogs.map(Blog => (Blog.id !== id ? Blog : returnedBlog)))
-      })
-      .catch(() => {
-        setErrorMessage(
-          `Blog '${Blog.content}' was already removed from server`
-        )
-        setTimeout(() => {
-          setErrorMessage(null)
-        }, 5000)
-        setBlogs(blogs.filter(n => n.id !== id))
-      })
-  }*/}
 
   const handleLogin = async event => {
     event.preventDefault()
-    console.log('yritetään kirjautua')
     try {
+      console.log('kirjaudutaan sisään')
       const user = await loginService.login({ username, password })
-
       window.localStorage.setItem('loggedBlogappUser', JSON.stringify(user))
       BlogService.setToken(user.token)
       setUser(user)
       setUsername('')
       setPassword('')
-      console.log('kirjautuminen onnistui')
+      console.log('sisäänkirjautuminen onnistui')
       setSuccessMessage('sisäänkirjautuminen onnistui')
-      setTimeout(() => {
-        setSuccessMessage(null)
-      }, 5000)  
+      setTimeout(() => setSuccessMessage(null), 5000)
     } catch {
+      console.log('sisäänkirjautuminen epäonnistui')
       setErrorMessage('väärä käyttäjätunnus tai salasana')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      setTimeout(() => setErrorMessage(null), 5000)
     }
   }
 
-  const BlogsToShow = showAll ? blogs : blogs.filter(Blog => Blog.title)
+  const logOut = () => {
+    console.log('kirjaudutaan ulos')
+    window.localStorage.removeItem('loggedBlogappUser')
+    setUser(null)
+    console.log('uloskirjautuminen onnistui')
+    setSuccessMessage('uloskirjautuminen onnistui')
+    setTimeout(() => setSuccessMessage(null), 5000)
+  }
+
+  const BlogsToShow = showAll
+    ? blogs
+    : blogs.filter(blog => blog.title)
 
   const loginForm = () => (
     <form onSubmit={handleLogin}>
@@ -139,48 +128,51 @@ const App = () => {
   const BlogForm = () => (
     <form onSubmit={addBlog}>
       <h2>create new</h2>
-      <div>title: <input value={newBlog.title} onChange={({ target }) => setNewBlog({ ...newBlog, title: target.value })} /></div>
-      <div>author: <input value={newBlog.author} onChange={({ target }) => setNewBlog({ ...newBlog, author: target.value })} /></div>
-      <div>url: <input value={newBlog.url} onChange={({ target }) => setNewBlog({ ...newBlog, url: target.value })} /></div>
+      <div>
+        title:
+        <input
+          value={newBlog.title}
+          onChange={({ target }) => setNewBlog({ ...newBlog, title: target.value })}
+        />
+      </div>
+      <div>
+        author:
+        <input
+          value={newBlog.author}
+          onChange={({ target }) => setNewBlog({ ...newBlog, author: target.value })}
+        />
+      </div>
+      <div>
+        url:
+        <input
+          value={newBlog.url}
+          onChange={({ target }) => setNewBlog({ ...newBlog, url: target.value })}
+        />
+      </div>
       <button type="submit">create</button>
     </form>
   )
 
-  const logOut = () => {
-    console.log('kirjaudutaan ulos')
-    window.localStorage.removeItem('loggedBlogappUser')
-    setUser(null)
-    console.log('uloskirjautuminen onnistui')
-    setSuccessMessage('uloskirjautuminen onnistui')
-    setTimeout(() => {
-      setSuccessMessage(null)
-    }, 5000)
-  }
-
   return (
     <div>
       <h1>Blogs</h1>
-      <Notification message={successMessage} color="green"/>
-      <Notification message={errorMessage} color="red"/>
+      <Notification message={successMessage} color="green" />
+      <Notification message={errorMessage} color="red" />
       {!user && loginForm()}
       {user && (
         <div>
-          <p>{user.name} logged in 
-          <button onClick={() => logOut()}>logout</button>
+          <p>
+            {user.name} logged in
+            <button onClick={logOut}>logout</button>
           </p>
           {BlogForm()}
-        {BlogsToShow
-          .filter(blog => blog.user?.username === user.username)
-          .map(blog => (
-            <Blog
-              key={blog.id}
-              blog={blog}
-            />
-      ))}
+          {BlogsToShow
+            .filter(blog => blog.user?.username === user.username)
+            .map(blog => (
+              <Blog key={blog.id} blog={blog} />
+            ))}
         </div>
       )}
-     
-
       <Footer />
     </div>
   )

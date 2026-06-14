@@ -1,5 +1,5 @@
 const Notification = ({ message, color }) => {
- console.log('Notification render, message:', message)
+ //console.log('Notification render, message:', message)
   const messageStyle = {
         color: color,
         background: 'lightgrey',
