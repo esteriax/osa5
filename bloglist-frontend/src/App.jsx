@@ -13,10 +13,15 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
+  const [successMessage, setSuccessMessage] = useState(null)
 
+  console.log('haetaan palvelimelta')
   useEffect(() => {
-    BlogService.getAll().then(initialBlogs => {
+    BlogService.getAll()
+    .then(initialBlogs => {
+      console.log('promise täytetty')
       setBlogs(initialBlogs)
+      console.log('blogit haettu palvelimelta')
     })
   }, [])
 
@@ -37,10 +42,26 @@ const App = () => {
       url: newBlog.url
     }
 
-    BlogService.create(BlogObject).then(returnedBlog => {
+    console.log('luodaan uusi blogi')
+    BlogService
+      .create(BlogObject)
+      .then(returnedBlog => {
       setBlogs(blogs.concat(returnedBlog))
       setNewBlog({ title: '', author: '', url: '' })
+      console.log('asetetaan onnistumisviesti')
+      setSuccessMessage(`a new blog ${returnedBlog.title} by ${returnedBlog.author} added`)
+      setTimeout(() => {
+          setSuccessMessage(null)
+        }, 10000)
+      console.log('blogi luotu palvelimelle')
     })
+    .catch(() => {
+      setErrorMessage('blog could not be added')
+      setTimeout(() => {
+          setErrorMessage(null)
+        }, 5000)
+    }
+    )
   }
 
   {/*const toggleImportanceOf = id => {
@@ -65,7 +86,7 @@ const App = () => {
 
   const handleLogin = async event => {
     event.preventDefault()
-
+    console.log('yritetään kirjautua')
     try {
       const user = await loginService.login({ username, password })
 
@@ -74,16 +95,17 @@ const App = () => {
       setUser(user)
       setUsername('')
       setPassword('')
+      console.log('kirjautuminen onnistui')
+      setSuccessMessage('sisäänkirjautuminen onnistui')
+      setTimeout(() => {
+        setSuccessMessage(null)
+      }, 5000)  
     } catch {
-      setErrorMessage('wrong credentials')
+      setErrorMessage('väärä käyttäjätunnus tai salasana')
       setTimeout(() => {
         setErrorMessage(null)
       }, 5000)
     }
-  }
-
-  const handleBlogChange = event => {
-    setNewBlog(event.target.value)
   }
 
   const BlogsToShow = showAll ? blogs : blogs.filter(Blog => Blog.title)
@@ -125,15 +147,21 @@ const App = () => {
   )
 
   const logOut = () => {
+    console.log('kirjaudutaan ulos')
     window.localStorage.removeItem('loggedBlogappUser')
     setUser(null)
+    console.log('uloskirjautuminen onnistui')
+    setSuccessMessage('uloskirjautuminen onnistui')
+    setTimeout(() => {
+      setSuccessMessage(null)
+    }, 5000)
   }
 
   return (
     <div>
       <h1>Blogs</h1>
-      <Notification message={errorMessage} />
-
+      <Notification message={successMessage} color="green"/>
+      <Notification message={errorMessage} color="red"/>
       {!user && loginForm()}
       {user && (
         <div>

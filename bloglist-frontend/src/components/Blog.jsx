@@ -2,7 +2,7 @@ const Blog = ({ blog }) => {
 
   return (
     <div className="Blog">
-      {blog.title}
+      {blog.title} by {blog.author}
     </div>
   )
 }
