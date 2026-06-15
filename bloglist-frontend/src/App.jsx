@@ -18,7 +18,6 @@ const App = () => {
   const [user, setUser] = useState(null)
   const [successMessage, setSuccessMessage] = useState(null)
   const [loginVisible, setLoginVisible] = useState(false)
-  const [blogFormVisible, setBlogFormVisible] = useState(false)
 
 
   useEffect(() => {
@@ -45,28 +44,13 @@ const App = () => {
     }
   }, [])
 
-  const addBlog = async event => {
-    event.preventDefault()
-     console.log('lisätään blogi palvelimelle')
-    const blogObject = {
-      title: newBlog.title,
-      author: newBlog.author,
-      url: newBlog.url
-    }
-
+  const addBlog = async (blogObject) => {
     try {
-      const returnedBlog = await BlogService.create(blogObject)
-      console.log('returnedBlog:', returnedBlog)
-      setBlogs(blogs.concat(returnedBlog))
-      setNewBlog({ title: '', author: '', url: '' })
-      console.log('blogi lisätty')
-      alert(`a new blog ${returnedBlog.title} added`)
-      setSuccessMessage(`a new blog ${returnedBlog.title} by ${returnedBlog.author} added`)
-      setTimeout(() => setSuccessMessage(null), 5000)
+        const returnedBlog = await BlogService.create(blogObject)
+        setBlogs(blogs.concat(returnedBlog))
     } catch {
-      console.log('blogin lisääminen epäonnistui')
-      setErrorMessage('blog could not be added')
-      setTimeout(() => setErrorMessage(null), 5000)
+        setErrorMessage('blog could not be added')
+        setTimeout(() => setErrorMessage(null), 5000)
     }
   }
 
@@ -104,15 +88,9 @@ const App = () => {
     : blogs.filter(blog => blog.title)
 
   const loginForm = () => {
-    const hideWhenVisible = { display: loginVisible ? 'none' : '' }
-    const showWhenVisible = { display: loginVisible ? '' : 'none' }
 
     return (
       <div>
-        <div style={hideWhenVisible}>
-          <button onClick={() => setLoginVisible(true)}>log in</button>
-        </div>
-        <div style={showWhenVisible}>
           <LoginForm
             username={username}
             password={password}
@@ -121,31 +99,11 @@ const App = () => {
             handleSubmit={handleLogin}
           />
           <button onClick={() => setLoginVisible(false)}>cancel</button>
-        </div>
       </div>
     )
   }
 
-  const blogForm = () => {
-    const hideWhenVisible = { display: blogFormVisible ? 'none' : '' }
-    const showWhenVisible = { display: blogFormVisible ? '' : 'none' }
-
-    return (
-      <div>
-        <div style={hideWhenVisible}>
-          <button onClick={() => setBlogFormVisible(true)}>create new blog</button>
-        </div>
-        <div style={showWhenVisible}>
-          <BlogForm
-            addBlog={addBlog}
-            newBlog={newBlog}
-            setNewBlog={setNewBlog}
-          />
-          <button onClick={() => setBlogFormVisible(false)}>cancel</button>
-        </div>
-      </div>
-    )
-  }
+  
   return (
     <div>
       <h1>Blogs</h1>
@@ -158,7 +116,9 @@ const App = () => {
             {user.name} logged in
             <button onClick={logOut}>logout</button>
           </p>
-          {blogForm()}
+          <Togglable buttonLabel="create new blog">
+            <BlogForm createBlog={addBlog} newBlog={newBlog} setNewBlog={setNewBlog} />
+          </Togglable>
           {BlogsToShow
             .filter(blog => blog.user?.username === user.username)
             .map(blog => (
