@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Footer from './components/Footer'
 import Blog from './components/Blog'
 import Notification from './components/Notification'
@@ -46,6 +46,7 @@ const App = () => {
 
   const addBlog = async (blogObject) => {
     try {
+        blogFormRef.current.toggleVisibility()
         const returnedBlog = await BlogService.create(blogObject)
         setBlogs(blogs.concat(returnedBlog))
     } catch {
@@ -53,6 +54,8 @@ const App = () => {
         setTimeout(() => setErrorMessage(null), 5000)
     }
   }
+
+  const blogFormRef = useRef()
 
   const handleLogin = async event => {
     event.preventDefault()
@@ -116,7 +119,7 @@ const App = () => {
             {user.name} logged in
             <button onClick={logOut}>logout</button>
           </p>
-          <Togglable buttonLabel="create new blog">
+          <Togglable buttonLabel="create new blog" ref={blogFormRef}>
             <BlogForm createBlog={addBlog} newBlog={newBlog} setNewBlog={setNewBlog} />
           </Togglable>
           {BlogsToShow
